@@ -42,17 +42,70 @@ app.MapPut("/employees/{id}", async (int id, Employee inputEmployee, HourtrackCo
     return Results.NoContent();
 });
 
+
+app.MapGet("/projects", async (HourtrackContext dbContext) =>
+{
+    var projects = await dbContext.Projects.ToListAsync();
+    return projects;
+});
+
+app.MapGet("/projects/{id}", async (int id, HourtrackContext dbContext) =>
+    await dbContext.Projects.FindAsync(id)
+        is Project project
+            ? Results.Ok(project)
+            : Results.NotFound());
+
+app.MapPut("/projects/{id}", async (int id, Project inputProject, HourtrackContext dbContext) =>
+{
+    var project = await dbContext.Projects.FindAsync(id);
+
+    if (project is null) return Results.NotFound();
+
+
+    project.Id = inputProject.Id;
+    project.Name = inputProject.Name;
+
+
+    await dbContext.SaveChangesAsync();
+
+    return Results.NoContent();
+});
+
 app.MapGet("/workhour", async (HourtrackContext dbContext) =>
 {
-    var employees = await dbContext.Workhours.ToListAsync();
-    return employees;
-
+    var workhours = await dbContext.Workhours.ToListAsync();
+    return workhours;
 });
 
 app.MapGet("/workhour/{id}", async (int id, HourtrackContext dbContext) =>
     await dbContext.Workhours.FindAsync(id)
-        is Employee employee
-            ? Results.Ok(employee)
+        is Workhour Workhours
+            ? Results.Ok(Workhours)
             : Results.NotFound());
+
+app.MapPut("/workhour/{id}", async (int id, Project inputProject, HourtrackContext dbContext) =>
+{
+    var project = await dbContext.Projects.FindAsync(id);
+
+    if (project is null) return Results.NotFound();
+
+
+    project.Id = inputProject.Id;
+    project.Name = inputProject.Name;
+
+
+    await dbContext.SaveChangesAsync();
+
+    return Results.NoContent();
+});
+
+app.MapPost("/workhour", async (Workhour workhour, HourtrackContext dbContext) =>
+{
+    dbContext.Workhours.Add(workhour);
+    await dbContext.SaveChangesAsync();
+
+    return Results.Created($"/todoitems/{workhour.Id}", workhour);
+});
+
 
 app.Run();
